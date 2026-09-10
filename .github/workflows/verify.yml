@@ -61,7 +61,7 @@ jobs:
           echo "$MUTANT_PACK_SHA256  mutants.tar.gz" | sha256sum -c -
           mkdir -p .mutants
           tar xzf mutants.tar.gz -C .mutants
-        ontinue-on-error: true
+        continue-on-error: true
 
       # ── grade ───────────────────────────────────────────────────────────
       - name: Grade

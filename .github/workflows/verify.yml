@@ -26,8 +26,8 @@ jobs:
       CHALLENGE_ID: vault-limit
       PROGRAM_SO: target/deploy/lamports_vault.so
       # Pinned so a learner cannot point the run at a pack of their own.
-      MUTANT_PACK_URL: https://github.com/OWNER/solana-summer-mutants/releases/download/vault-v1/vault-v1.tar.gz
-      MUTANT_PACK_SHA256: REPLACE_WITH_SHA256_OF_THE_PACK
+      MUTANT_PACK_URL:  https://github.com/JavierBonill4/solana-summer-mutants/releases/download/vault-v1/vault-v1.tar.gz
+      MUTANT_PACK_SHA256: c4e96c52d7e2ba4e21783e9792b8c19d22c8c872152c030ed43fc9286491053a
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
           echo "$MUTANT_PACK_SHA256  mutants.tar.gz" | sha256sum -c -
           mkdir -p .mutants
           tar xzf mutants.tar.gz -C .mutants
-        continue-on-error: true
+        # continue-on-error: true
 
       # ── grade ───────────────────────────────────────────────────────────
       - name: Grade

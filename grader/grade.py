@@ -45,8 +45,24 @@ MUTANT_DIR = ROOT / ".mutants"
 RESULT = ROOT / "result.json"
 
 CHALLENGE_ID = "vault-limit"
-LEARNER_TESTS = ["test_initialize", "test_deposit", "test_withdraw"]
 CANONICAL_TEST = "canonical"
+TESTS_DIR = ROOT / "programs" / "lamports-vault" / "tests"
+
+
+def learner_tests() -> list[str]:
+    """
+    Every integration test target except ours.
+
+    Discovered, not hardcoded. Cargo treats each top-level `tests/*.rs` as its
+    own target, so this picks up a file a learner adds without being told to.
+    A hardcoded list silently ignores new files: they compile and pass under a
+    plain `cargo test` locally, kill nothing here, and nothing anywhere says
+    why. `tests/common/mod.rs` is a module rather than a target, so it is not
+    matched by the glob.
+    """
+    return sorted(
+        f.stem for f in TESTS_DIR.glob("*.rs") if f.stem != CANONICAL_TEST
+    )
 
 SUMMARY = re.compile(
     r"test result:\s+(ok|FAILED)\.\s+(\d+)\s+passed;\s+(\d+)\s+failed"
@@ -92,6 +108,10 @@ def main() -> int:
         emit_failure("anchor build did not produce target/deploy/lamports_vault.so")
         return 1
 
+    learner = learner_tests()
+    if not learner:
+        notes.append("No test files found in programs/lamports-vault/tests/.")
+
     learner_so = PROGRAM_SO.with_suffix(".so.learner")
     shutil.copyfile(PROGRAM_SO, learner_so)
 
@@ -123,7 +143,7 @@ def main() -> int:
         notes.append("Mutant pack is missing reference.so — mutation was skipped.")
     else:
         swap_program(reference)
-        reference_pass, r_passed, r_failed, r_compiled, _ = run_tests(LEARNER_TESTS)
+        reference_pass, r_passed, r_failed, r_compiled, _ = run_tests(learner)
 
         if not r_compiled:
             notes.append(
@@ -141,7 +161,7 @@ def main() -> int:
         if reference_pass:
             for mutant in mutants:
                 swap_program(mutant)
-                m_ok, _, _, m_compiled, _ = run_tests(LEARNER_TESTS)
+                m_ok, _, _, m_compiled, _ = run_tests(learner)
                 if not m_compiled:
                     notes.append(f"{mutant.stem}: skipped, did not compile.")
                     continue
